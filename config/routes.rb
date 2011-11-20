@@ -1,7 +1,7 @@
 Markedli::Application.routes.draw do
 
+  resources :client_applications, :only => [:new, :create, :show]
   devise_for :users
-
   root :to => "public#index"
   # The priority is based upon order of creation:
   # first created -> highest priority.
