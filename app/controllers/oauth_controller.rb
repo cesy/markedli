@@ -2,7 +2,7 @@ class OauthController < ApplicationController
   def authorize
     client_application = ClientApplication.with_id(params[:client_id])
     @access_grant = AccessGrant.create(:client_application => client_application)
-    redirect_to "#{params[:redirect_uri]}&code=somecode&response_type=code"
+    redirect_to "#{params[:redirect_uri]}&code=#{@access_grant.code}&response_type=code"
   end
   def access_token
     client_application = ClientApplication.authorize(params[:client_id], params[:client_secret])

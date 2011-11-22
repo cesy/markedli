@@ -7,8 +7,9 @@ Given /^I have created a client application$/ do
 
   click_button 'Create'
 
-  @application_key = find('li#application_key').value
-  @application_secret = find('li#application_secret').value
+  page.should have_content 'My Client Application'
+  @application_key = ClientApplication.last.key
+  @application_secret = ClientApplication.last.secret
 end
 
 When /^I create a client application$/ do
@@ -23,15 +24,19 @@ end
 def client
   Capybara.current_session.driver
 end
+
 When /^My client application authenticates$/ do
   #get user authorization and temp code
   client.browser.process(:get, "/oauth/authorize?response_type=code&client_id=#{@application_key}&state=test")
   client.response.should be_redirect
-  temp_code = Rack::Utils.parse_nested_query(client.response["Location"])["code"]
-  temp_code.should_not == ""
-  client.browser.process(:get, "/oauth/access_token?client_id=#{@application_key}&client_secret=#{@application_secret}&code=#{temp_code}")
+  @grant_code = Rack::Utils.parse_nested_query(client.response["Location"])["code"]
+  @grant_code.should_not == ""
+end
+
+Then /^My client has an access token$/ do
+  client.browser.process(:get, "/oauth/access_token?client_id=#{@application_key}&client_secret=#{@application_secret}&code=#{@grant_code}")
   client.response.should be_ok
-  puts client.response.body
+  client.response.body["access_token"].should_not be_nil
 end
 
 Then /^I have a key and secret for the application$/ do

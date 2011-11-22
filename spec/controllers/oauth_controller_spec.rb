@@ -4,6 +4,7 @@ describe OauthController do
   describe '#authorize' do
     let(:client_application) { ClientApplication.create! Factory.attributes_for(:client_application) }
     let(:client_key) { client_application.key }
+    let(:redirect_uri) { "http://client.app" }
     it "creates an AccessGrant for the application" do
       expect {
         get :authorize, :client_id => client_key
@@ -11,10 +12,13 @@ describe OauthController do
       assigns(:access_grant).client_application.should == client_application
     end
     it "redirects the user back to the client" do
-      redirect_uri = "http://client.com"
       get :authorize, :client_id => client_key, :redirect_uri => redirect_uri
       response.should be_redirect
-      #response.should redirect_to
+      response.redirect_url.should be_include(redirect_uri)
+    end
+    it "returns an access grant code param" do
+      get :authorize, :client_id => client_key, :redirect_uri => redirect_uri
+      response.redirect_url.should be_include("code=#{AccessGrant.last.code}")
     end
   end
   describe "#access_token" do
