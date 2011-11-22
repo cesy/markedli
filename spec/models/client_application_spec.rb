@@ -14,4 +14,16 @@ describe ClientApplication do
     client_application.key.should_not == "somekey"
     client_application.secret.should_not == "somesecret"
   end
+  describe "#with_id" do
+    it "should search for ClientApplications by key" do
+      client_application = Factory(:client_application)
+      ClientApplication.with_id(client_application.key).should == client_application
+    end
+  end
+  describe "#authorize" do
+    it "should search for ClientApplications by key and secret" do
+      client_application = Factory(:client_application)
+      ClientApplication.authorize(client_application.key, client_application.secret).should == client_application
+    end
+  end
 end

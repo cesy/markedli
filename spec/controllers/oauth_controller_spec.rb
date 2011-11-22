@@ -18,8 +18,30 @@ describe OauthController do
     end
   end
   describe "#access_token" do
-    it "verifies the client application"
-    it "authorizes the access grant with the temporary code"
-    it "responds with an access token"
+    let(:client_application) { ClientApplication.create! Factory.attributes_for(:client_application) }
+    let(:client_key) { client_application.key }
+    let(:client_secret) { client_application.secret }
+    let(:access_grant) { AccessGrant.create! :client_application => client_application }
+    let(:code) { access_grant.code }
+    it "verifies the client application" do
+      ClientApplication.should_receive(:authorize).with(client_key, client_secret)
+      get :access_token, :client_id => client_key, :code => code, :client_secret => client_secret
+    end
+    it "returns an error if no client application matches" do
+      get :access_token, :client_id => "somekey", :code => code, :client_secret => client_secret
+      response.body.should eq({:error => "No client application found"}.to_json)
+    end
+    it "authorizes the access grant with the temporary code" do
+      AccessGrant.should_receive(:authorize).with(client_application, code)
+      get :access_token, :client_id => client_key, :code => code, :client_secret => client_secret
+    end
+    it "returns an error if no access grant matches" do
+      get :access_token, :client_id => client_key, :code => "somecode", :client_secret => client_secret
+      response.body.should eq({:error => "No grant found"}.to_json)
+    end
+    it "responds with an access token" do
+      get :access_token, :client_id => client_key, :code => code, :client_secret => client_secret
+      response.body.should eq({:access_token => access_grant.access_token}.to_json)
+    end
   end
 end

@@ -13,6 +13,15 @@ class ClientApplication
     :length => {:minimum => 2}
 
   attr_accessible :name, :description
+
+  def self.with_id client_id
+    where(key: client_id).last
+  end
+
+  def self.authorize client_id, client_secret
+    where(key: client_id).and(secret: client_secret).last
+  end
+
   protected
     
     def generate_keys
