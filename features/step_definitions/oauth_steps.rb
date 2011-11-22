@@ -8,8 +8,8 @@ Given /^I have created a client application$/ do
   click_button 'Create'
 
   page.should have_content 'My Client Application'
-  @application_key = ClientApplication.last.key
-  @application_secret = ClientApplication.last.secret
+  @application_key = find('#application_key').text
+  @application_secret = find('#application_secret').text
 end
 
 When /^I create a client application$/ do
@@ -21,25 +21,24 @@ When /^I create a client application$/ do
 
   click_button 'Create'
 end
-def client
-  Capybara.current_session.driver
-end
 
 When /^My client application authenticates$/ do
   #get user authorization and temp code
-  client.browser.process(:get, "/oauth/authorize?response_type=code&client_id=#{@application_key}&state=test")
-  client.response.should be_redirect
-  @grant_code = Rack::Utils.parse_nested_query(client.response["Location"])["code"]
-  @grant_code.should_not == ""
+  get "/oauth/authorize?response_type=code&client_id=#{@application_key}&state=test"
+  last_response.should be_redirect
+  @grant_code = get_param_from_response last_response, "code"
+  @grant_code.should_not be_nil
+  @grant_code.should_not be_empty
 end
 
 Then /^My client has an access token$/ do
-  client.browser.process(:get, "/oauth/access_token?client_id=#{@application_key}&client_secret=#{@application_secret}&code=#{@grant_code}")
-  client.response.should be_ok
-  client.response.body["access_token"].should_not be_nil
+  get "/oauth/access_token?client_id=#{@application_key}&client_secret=#{@application_secret}&code=#{@grant_code}"
+  last_response.should be_ok
+  last_response.body["access_token"].should_not be_nil
+  last_response.body["access_token"].should_not be_empty
 end
 
 Then /^I have a key and secret for the application$/ do
-  find('li#application_key').should_not == ""
-  find('li#application_secret').should_not == ""
+  find('li#application_key').text.should_not be_empty
+  find('li#application_secret').text.should_not be_empty
 end
