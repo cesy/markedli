@@ -1,5 +1,5 @@
 Markedli::Application.routes.draw do
-
+  match 'oauth/authorize' => 'oauth#authorize'
   resources :client_applications, :only => [:new, :create, :show]
   devise_for :users
   root :to => "public#index"
