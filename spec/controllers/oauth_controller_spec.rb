@@ -2,34 +2,23 @@ require 'spec_helper'
 
 describe OauthController do
   describe '#authorize' do
-    context "without a logged in user" do
-      it "redirects to login" do
-        get :authorize
-        response.should redirect_to new_user_session_path
-      end
+    let(:client_application) { ClientApplication.create! Factory.attributes_for(:client_application) }
+    let(:client_key) { client_application.key }
+    let(:redirect_uri) { "http://client.app" }
+    it "creates an AccessGrant for the application" do
+      expect {
+        get :authorize, :client_id => client_key
+      }.to change(AccessGrant, :count).by(1)
+      assigns(:access_grant).client_application.should == client_application
     end
-    context "with a logged in user" do
-      let(:user) { Factory(:user) }
-      before(:each) { sign_in user }
-      let(:client_application) { ClientApplication.create! Factory.attributes_for(:client_application) }
-      let(:client_key) { client_application.key }
-      let(:redirect_uri) { "http://client.app" }
-      it "creates an AccessGrant for the application & logged in user" do
-        expect {
-          get :authorize, :client_id => client_key
-        }.to change(AccessGrant, :count).by(1)
-        assigns(:access_grant).client_application.should == client_application
-        assigns(:access_grant).user.should == user
-      end
-      it "redirects the user back to the client" do
-        get :authorize, :client_id => client_key, :redirect_uri => redirect_uri
-        response.should be_redirect
-        response.redirect_url.should be_include(redirect_uri)
-      end
-      it "returns an access grant code param" do
-        get :authorize, :client_id => client_key, :redirect_uri => redirect_uri
-        response.redirect_url.should be_include("code=#{AccessGrant.last.code}")
-      end
+    it "redirects the user back to the client" do
+      get :authorize, :client_id => client_key, :redirect_uri => redirect_uri
+      response.should be_redirect
+      response.redirect_url.should be_include(redirect_uri)
+    end
+    it "returns an access grant code param" do
+      get :authorize, :client_id => client_key, :redirect_uri => redirect_uri
+      response.redirect_url.should be_include("code=#{AccessGrant.last.code}")
     end
   end
   describe "#access_token" do

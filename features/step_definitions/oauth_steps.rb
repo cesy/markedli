@@ -1,22 +1,41 @@
 Given /^I have created a client application$/ do
-  @application_key, @application_secret = new_client_app
+  visit '/client_applications/new'
+
+  fill_in 'Name', :with => 'My Client Application'
+  fill_in 'Description', 
+      :with => 'Description of my client application'
+
+  click_button 'Create'
+
+  page.should have_content 'My Client Application'
+  @application_key = find('#application_key').text
+  @application_secret = find('#application_secret').text
 end
 
 When /^I create a client application$/ do
-  new_client_app
+  visit '/client_applications/new'
+
+  fill_in 'Name', :with => 'My Client Application'
+  fill_in 'Description', 
+      :with => 'Description of my client application'
+
+  click_button 'Create'
 end
 
 When /^My client application authenticates$/ do
   #get user authorization and temp code
-  @grant_code = authorize_client @application_key
+  get "/oauth/authorize?response_type=code&client_id=#{@application_key}&state=test"
+  last_response.should be_redirect
+  @grant_code = get_param_from_response last_response, "code"
   @grant_code.should_not be_nil
   @grant_code.should_not be_empty
 end
 
 Then /^My client has an access token$/ do
-  access_token = exchange_code_for_token @application_key, @application_secret, @grant_code
-  access_token.should_not be_nil
-  access_token.should_not be_empty
+  get "/oauth/access_token?client_id=#{@application_key}&client_secret=#{@application_secret}&code=#{@grant_code}"
+  last_response.should be_ok
+  last_response.body["access_token"].should_not be_nil
+  last_response.body["access_token"].should_not be_empty
 end
 
 Then /^I have a key and secret for the application$/ do

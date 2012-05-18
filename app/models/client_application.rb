@@ -1,3 +1,4 @@
+require 'oauth'
 
 class ClientApplication
   include Mongoid::Document
@@ -24,8 +25,7 @@ class ClientApplication
   protected
     
     def generate_keys
-      self.key = SecureRandom.base64(40).gsub(/\W/, '')[0,40]
-      self.secret = SecureRandom.base64(40).gsub(/\W/, '')[0,40]
+      self.key = OAuth::Helper.generate_key(40)[0,40]
+      self.secret = OAuth::Helper.generate_key(40)[0,40]
     end
-
 end

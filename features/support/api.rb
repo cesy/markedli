@@ -2,10 +2,6 @@ module CapybaraApp
   def app
     Capybara.app
   end
-  def session
-    puts page.driver.response.methods
-    page.driver.response['rack.session']
-  end
 end
 module ApiHelpers
   def get_param_from_response response, param

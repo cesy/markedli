@@ -30,6 +30,7 @@ gem "rails-footnotes", ">= 3.7", :group => :development
 
 # Tools & libs
 gem "devise", ">= 1.4.7"
+gem "oauth"
 
 # Testing & Development with guard
 gem "rspec-rails", ">= 2.6.1", :group => [:development, :test]
